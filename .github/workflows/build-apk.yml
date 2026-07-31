@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,8 +43,25 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APK Artifact
+      - name: Prepare Unzipped Direct APK
+        run: |
+          mkdir -p output_apk
+          cp android/app/build/outputs/apk/release/*.apk output_apk/tata_clamp_and_angle_selection.apk
+
+      - name: Upload Artifact Zip
         uses: actions/upload-artifact@v4
         with:
           name: tata_clamp_and_angle_selection-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: output_apk/tata_clamp_and_angle_selection.apk
+
+      - name: Publish Direct APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "tata_clamp_and_angle_selection v1.0.0 Direct APK"
+          body: "Direct production release APK for tata_clamp_and_angle_selection. Download directly to tablet."
+          files: output_apk/tata_clamp_and_angle_selection.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
